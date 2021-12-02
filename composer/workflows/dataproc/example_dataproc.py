@@ -25,11 +25,8 @@ import os
 from airflow import models
 from airflow.providers.google.cloud.operators.dataproc import (
     DataprocCreateClusterOperator,
-    DataprocCreateWorkflowTemplateOperator,
     DataprocDeleteClusterOperator,
-    DataprocInstantiateWorkflowTemplateOperator,
     DataprocSubmitJobOperator,
-    DataprocUpdateClusterOperator,
 )
 from airflow.providers.google.cloud.sensors.dataproc import DataprocJobSensor
 from airflow.utils.dates import days_ago
@@ -37,14 +34,6 @@ from airflow.utils.dates import days_ago
 PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "leah-playground")
 CLUSTER_NAME = os.environ.get("GCP_DATAPROC_CLUSTER_NAME", "cluster-0c23")
 REGION = os.environ.get("GCP_LOCATION", "us-central1")
-# ZONE = os.environ.get("GCP_REGION", "europe-west1-b")
-# BUCKET = os.environ.get("GCP_DATAPROC_BUCKET", "dataproc-system-tests")
-# OUTPUT_FOLDER = "wordcount"
-# OUTPUT_PATH = f"gs://{BUCKET}/{OUTPUT_FOLDER}/"
-# PYSPARK_MAIN = os.environ.get("PYSPARK_MAIN", "hello_world.py")
-# PYSPARK_URI = f"gs://{BUCKET}/{PYSPARK_MAIN}"
-# SPARKR_MAIN = os.environ.get("SPARKR_MAIN", "hello_world.R")
-# SPARKR_URI = f"gs://{BUCKET}/{SPARKR_MAIN}"
 
 # Cluster definition
 # [START how_to_cloud_dataproc_create_cluster]
@@ -64,24 +53,6 @@ CLUSTER_CONFIG = {
 
 # [END how_to_cloud_dataproc_create_cluster]
 
-# # Update options
-# # [START how_to_cloud_dataproc_updatemask_cluster_operator]
-# CLUSTER_UPDATE = {
-#     "config": {"worker_config": {"num_instances": 3}, "secondary_worker_config": {"num_instances": 3}}
-# }
-# UPDATE_MASK = {
-#     "paths": ["config.worker_config.num_instances", "config.secondary_worker_config.num_instances"]
-# }
-# # [END how_to_cloud_dataproc_updatemask_cluster_operator]
-
-# TIMEOUT = {"seconds": 1 * 24 * 60 * 60}
-
-# [START how_to_cloud_dataproc_pyspark_config]
-# PYSPARK_JOB = {
-#     "reference": {"project_id": PROJECT_ID},
-#     "placement": {"cluster_name": CLUSTER_NAME},
-#     "pyspark_job": {"main_python_file_uri": PYSPARK_URI},
-# }
 PYSPARK_JOB = {
     "reference": {"project_id": "leah-playground"},
     "placement": {"cluster_name": CLUSTER_NAME},
@@ -101,18 +72,6 @@ with models.DAG("example_gcp_dataproc", start_date=days_ago(1), schedule_interva
     )
     # # [END how_to_cloud_dataproc_create_cluster_operator]
 
-    # # [START how_to_cloud_dataproc_update_cluster_operator]
-    # scale_cluster = DataprocUpdateClusterOperator(
-    #     task_id="scale_cluster",
-    #     cluster_name=CLUSTER_NAME,
-    #     cluster=CLUSTER_UPDATE,
-    #     update_mask=UPDATE_MASK,
-    #     graceful_decommission_timeout=TIMEOUT,
-    #     project_id=PROJECT_ID,
-    #     location=REGION,
-    # )
-    # # [END how_to_cloud_dataproc_update_cluster_operator]
-
 
     # [START how_to_cloud_dataproc_submit_job_to_cluster_operator]
     pyspark_task = DataprocSubmitJobOperator(
@@ -127,13 +86,4 @@ with models.DAG("example_gcp_dataproc", start_date=days_ago(1), schedule_interva
     )
     # # [END how_to_cloud_dataproc_delete_cluster_operator]
     create_cluster >> pyspark_task >> delete_cluster
-    # create_cluster >> scale_cluster
-    # scale_cluster >> create_workflow_template >> trigger_workflow >> delete_cluster
-    # scale_cluster >> hive_task >> delete_cluster
-    # scale_cluster >> pig_task >> delete_cluster
-    # scale_cluster >> spark_sql_task >> delete_cluster
-    # scale_cluster >> spark_task >> delete_cluster
-    # scale_cluster >> spark_task_async >> spark_task_async_sensor >> delete_cluster
-    # scale_cluster >> pyspark_task >> delete_cluster
-    # scale_cluster >> sparkr_task >> delete_cluster
-    # scale_cluster >> hadoop_task >> delete_cluster
+   
