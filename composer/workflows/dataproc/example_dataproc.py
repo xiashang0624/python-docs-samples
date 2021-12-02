@@ -53,10 +53,16 @@ CLUSTER_CONFIG = {
 
 # [END how_to_cloud_dataproc_create_cluster]
 
+# PYSPARK_JOB = {
+#     "reference": {"project_id": "leah-playground"},
+#     "placement": {"cluster_name": CLUSTER_NAME},
+#     "pyspark_job": {"main_python_file_uri": "gs://leah-playground/word-count.py", "args": ["gs://leah-playground/input", "gs://leah-playground/output-0"]},
+# }
+### ALTERNATIVE BQ CONNECTOR
 PYSPARK_JOB = {
     "reference": {"project_id": "leah-playground"},
     "placement": {"cluster_name": CLUSTER_NAME},
-    "pyspark_job": {"main_python_file_uri": "gs://leah-playground/word-count.py", "args": ["gs://leah-playground/input", "gs://leah-playground/output-0"]},
+    "pyspark_job": {"main_python_file_uri": "gs://leah-playground/word-count.py", "jar_file_uris": ["gs://spark-lib/bigquery/spark-bigquery-latest_2.12.jar"]},
 }
 # [END how_to_cloud_dataproc_pyspark_config]
 
@@ -74,8 +80,12 @@ with models.DAG("example_gcp_dataproc", start_date=days_ago(1), schedule_interva
 
 
     # [START how_to_cloud_dataproc_submit_job_to_cluster_operator]
+    # pyspark_task = DataprocSubmitJobOperator(
+    #     task_id="pyspark_task", job=PYSPARK_JOB, location=REGION, project_id=PROJECT_ID
+    # )
+    ### ALTERNATIVE w/ bigquery connector
     pyspark_task = DataprocSubmitJobOperator(
-        task_id="pyspark_task", job=PYSPARK_JOB, location=REGION, project_id=PROJECT_ID
+        task_id="pyspark_task_bq_connector", job=PYSPARK_JOB, location=REGION, project_id=PROJECT_ID 
     )
     # [END how_to_cloud_dataproc_submit_job_to_cluster_operator]
 
